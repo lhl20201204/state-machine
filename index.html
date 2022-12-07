@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <textarea id="input"></textarea>
+  <textarea id="output"></textarea>
+</body>
+<style>
+  * {
+    padding: 0;
+    margin: 0;
+  }
+
+  #input,
+  #output {
+    width: 45vw;
+    height: 95vh;
+    resize: none;
+    padding: 8px;
+  }
+</style>
+<script src="./StateMachine.js"></script>
+<script src="./config.js"></script>
+<script >
+
+  const debounce = (fn) => {
+    let timer
+    return function (...args) {
+      if (timer) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(() => {
+        fn.call(this, ...args)
+      }, 1000)
+    }
+  }
+
+  function getText(x, s = 0) {
+    const prefixSpace = new Array(s).fill('  ').join('');
+    let text = ''
+    if (Array.isArray(x)) {
+      text += prefixSpace + '[\n'
+      for (const a of x) {
+        text += getText(a, s + 1) + ',\n'
+      }
+      text += prefixSpace + ']'
+    } else if (x instanceof Object) {
+      text += prefixSpace + '{\n'
+      for (const attr in x) {
+        text += prefixSpace + '  ' + attr + ':' + getText(x[attr], s + 1) + ',\n'
+      }
+      text += prefixSpace + '}'
+    } else {
+      text += prefixSpace + x
+    }
+    return text;
+  }
+
+  function append(x) {
+    output.value = getText(x)
+  }
+
+  const handle = (str) => {
+    const sm = new StateMachine()
+    const result = sm.match(str, getTestingConfig())
+    console.log(sm.history, sm)
+    append({
+      str,
+      result
+    })
+  }
+
+  input.addEventListener('input', debounce(x => handle(x.target.value)))
+  const arr = [
+    '((-0.011e-12) +((+1.2-0)) )',
+    '-0.011e-12'
+  ]
+  const initTestString = arr[0]
+  input.value = initTestString
+  handle(initTestString)
+
+
+</script>
+
+</html>
